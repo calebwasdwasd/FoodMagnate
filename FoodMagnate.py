@@ -3,8 +3,8 @@
 # written by the AQA Programmer Team
 # developed in the Python 3.5.1 programming environment
 
-import math
 import random
+import math
 
 
 class Household:
@@ -292,7 +292,6 @@ class Simulation:
         self._Companies = []
         self._FuelCostPerUnit = 0.0098
         self._BaseCostforDelivery = 100
-        self._DaysElapsed = 1
         Choice = input("Enter L for a large settlement, anything else for a normal size settlement: ")
         if Choice == "L":
             ExtraX = int(input("Enter additional amount to add to X size of settlement: "))
@@ -323,18 +322,12 @@ class Simulation:
             self._Companies[2].OpenOutlet(820, 370)
             self._Companies[2].OpenOutlet(800, 600)
         else:
-            self._NoOfCompanies = int(input("Enter number of companies that exist at start of simulation: "))
+            self._NoOfCompanies = input("Enter number of companies that exist at start of simulation: ")
+            while self._NoOfCompanies.isdigit() == False:
+                self._NoOfCompanies = input("Enter number of companies that exist at start of simulation: ")
+            self._NoOfCompanies = int(self._NoOfCompanies)
             for Count in range(1, self._NoOfCompanies + 1):
                 self.AddCompany()
-
-    def IncrementDaysElapsed(self):
-        self._DaysElapsed += 1
-
-    def DaysElapsed(self):
-        days_elapsed = self._DaysElapsed
-        print("\nDays elapsed: " + str(days_elapsed) + "\n")
-        self.IncrementDaysElapsed()
-
 
     def DisplayMenu(self):
         print("\n*********************************")
@@ -458,11 +451,21 @@ class Simulation:
                     Current += 1
         self.__DisplayCompaniesAtDayEnd()
         self.__DisplayEventsAtDayEnd()
-        self.DaysElapsed()
 
     def AddCompany(self):
+
         CompanyName = input("Enter a name for the company: ")
-        Balance = int(input("Enter the starting balance for the company: "))
+        Balance = input("Enter the starting balance for the company, (e.g. 100,000): ")
+        Delimiter = ""
+        for s in Balance:
+            Balance = Balance.split(",")
+            Balance = Delimiter.join(Balance)
+        while Balance.isdigit() == False:
+            Balance = input("Enter the starting balance for the company, (e.g. 100,000): ")
+            Balance = Balance.split(",")
+            Balance = Delimiter.join(Balance)
+        Balance = int(Balance)
+
         TypeOfCompany = ""
         while not (TypeOfCompany == "1" or TypeOfCompany == "2" or TypeOfCompany == "3"):
             TypeOfCompany = input(
@@ -527,7 +530,9 @@ class Simulation:
         Choice = ""
         while Choice != "Q":
             self.DisplayMenu()
-            Choice = input()
+            Choice = (input())
+            if Choice.isdigit() == False:
+                Choice = Choice.upper()
             if Choice == "1":
                 self._SimulationSettlement.DisplayHouseholds()
             elif Choice == "2":
