@@ -3,8 +3,8 @@
 # written by the AQA Programmer Team
 # developed in the Python 3.5.1 programming environment
 
-import random
 import math
+import random
 
 
 class Household:
@@ -38,7 +38,6 @@ class Settlement:
         self._YSize = 1000
         self._StartNoOfHouseholds = 250
         self._Households = []
-        self._CreateHouseholds()
 
     def GetNumberOfHouseholds(self):
         return len(self._Households)
@@ -62,6 +61,9 @@ class Settlement:
         X, Y = self.GetRandomLocation()
         Temp = Household(X, Y)
         self._Households.append(Temp)
+
+    def SubtractHousehold(self):
+        self._Households.remove(self._Households[-1])
 
     def DisplayHouseholds(self):
         print("\n**********************************")
@@ -87,9 +89,15 @@ class LargeSettlement(Settlement):
         self._XSize += ExtraXSize
         self._YSize += ExtraYSize
         self._StartNoOfHouseholds += ExtraHouseholds
-        for Count in range(1, ExtraHouseholds + 1):
-            self.AddHousehold()
+        self._CreateHouseholds()
 
+class SmallSettlement(Settlement):
+    def __init__(self, SmallXSize, SmallYSize, SmallHouseholds):
+        super(SmallSettlement, self).__init__()
+        self._XSize -= SmallXSize
+        self._YSize -= SmallYSize
+        self._StartNoOfHouseholds -= SmallHouseholds
+        self._CreateHouseholds()
 
 class Outlet:
     def __init__(self, XCoord, YCoord, MaxCapacityBase):
@@ -292,14 +300,22 @@ class Simulation:
         self._Companies = []
         self._FuelCostPerUnit = 0.0098
         self._BaseCostforDelivery = 100
-        Choice = input("Enter L for a large settlement, anything else for a normal size settlement: ")
+        self._DaysElapsed = 1
+        Choice = input("Enter L for a large settlement, S for a small settlement and anything else for a normal size settlement: ")
         if Choice == "L":
             ExtraX = int(input("Enter additional amount to add to X size of settlement: "))
             ExtraY = int(input("Enter additional amount to add to Y size of settlement: "))
             ExtraHouseholds = int(input("Enter additional number of households to add to settlement: "))
             self._SimulationSettlement = LargeSettlement(ExtraX, ExtraY, ExtraHouseholds)
+        elif Choice == "S":
+            SmallX = int(input("Enter an amount to subtract from X size of settlement: "))
+            SmallY = int(input("Enter an amount to subtract from Y size of settlement: "))
+            SmallHouseholds = int(input("Enter additional number of households to subtract from settlement: "))
+            self._SimulationSettlement = SmallSettlement(SmallX, SmallY, SmallHouseholds)
+
         else:
             self._SimulationSettlement = Settlement()
+            self._SimulationSettlement._CreateHouseholds()
         Choice = input("Enter D for default companies, anything else to add your own start companies: ")
         if Choice == "D":
             self._NoOfCompanies = 3
@@ -322,12 +338,18 @@ class Simulation:
             self._Companies[2].OpenOutlet(820, 370)
             self._Companies[2].OpenOutlet(800, 600)
         else:
-            self._NoOfCompanies = input("Enter number of companies that exist at start of simulation: ")
-            while self._NoOfCompanies.isdigit() == False:
-                self._NoOfCompanies = input("Enter number of companies that exist at start of simulation: ")
-            self._NoOfCompanies = int(self._NoOfCompanies)
+            self._NoOfCompanies = int(input("Enter number of companies that exist at start of simulation: "))
             for Count in range(1, self._NoOfCompanies + 1):
                 self.AddCompany()
+
+    def IncrementDaysElapsed(self):
+        self._DaysElapsed += 1
+
+    def DaysElapsed(self):
+        days_elapsed = self._DaysElapsed
+        print("\nDays elapsed: " + str(days_elapsed) + "\n")
+        self.IncrementDaysElapsed()
+
 
     def DisplayMenu(self):
         print("\n*********************************")
@@ -337,6 +359,7 @@ class Simulation:
         print("2. Display details of companies")
         print("3. Modify company")
         print("4. Add new company")
+
         print("6. Advance to next day")
         print("Q. Quit")
         print("\nEnter your choice: ", end="")
@@ -451,21 +474,11 @@ class Simulation:
                     Current += 1
         self.__DisplayCompaniesAtDayEnd()
         self.__DisplayEventsAtDayEnd()
+        self.DaysElapsed()
 
     def AddCompany(self):
-
         CompanyName = input("Enter a name for the company: ")
-        Balance = input("Enter the starting balance for the company, (e.g. 100,000): ")
-        Delimiter = ""
-        for s in Balance:
-            Balance = Balance.split(",")
-            Balance = Delimiter.join(Balance)
-        while Balance.isdigit() == False:
-            Balance = input("Enter the starting balance for the company, (e.g. 100,000): ")
-            Balance = Balance.split(",")
-            Balance = Delimiter.join(Balance)
-        Balance = int(Balance)
-
+        Balance = int(input("Enter the starting balance for the company: "))
         TypeOfCompany = ""
         while not (TypeOfCompany == "1" or TypeOfCompany == "2" or TypeOfCompany == "3"):
             TypeOfCompany = input(
@@ -530,9 +543,7 @@ class Simulation:
         Choice = ""
         while Choice != "Q":
             self.DisplayMenu()
-            Choice = (input())
-            if Choice.isdigit() == False:
-                Choice = Choice.upper()
+            Choice = input()
             if Choice == "1":
                 self._SimulationSettlement.DisplayHouseholds()
             elif Choice == "2":
